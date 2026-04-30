@@ -9,6 +9,7 @@ Thumbs.db
 **/_build/
 **/node_modules/
 **/vendor/
+**/.php-cs-fixer.cache
 
 # Elixir / Erlang
 **/*.beam
