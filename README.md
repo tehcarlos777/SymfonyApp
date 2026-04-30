@@ -14,6 +14,10 @@ Ten projekt składa się z dwóch oddzielnych aplikacji z własnymi bazami danyc
 ```bash
 docker-compose up -d
 
+# Instalacja zależności Symfony i Phoenix
+docker-compose exec symfony composer install --no-interaction --no-scripts
+docker-compose exec phoenix mix deps.get
+
 # Konfiguracja bazy danych Symfony
 docker-compose exec symfony php bin/console doctrine:migrations:migrate --no-interaction
 docker-compose exec symfony php bin/console app:seed
@@ -21,6 +25,15 @@ docker-compose exec symfony php bin/console app:seed
 # Konfiguracja bazy danych Phoenix
 docker-compose exec phoenix mix ecto.migrate
 docker-compose exec phoenix mix run priv/repo/seeds.exs
+```
+
+### Rozwiązywanie problemów (opcjonalnie)
+
+Jeśli pojawią się problemy z logowaniem do PostgreSQL (np. po wcześniejszych zmianach haseł lub danych), uruchom projekt od zera:
+
+```bash
+docker-compose down -v
+docker-compose up -d
 ```
 
 Dostęp do aplikacji:
