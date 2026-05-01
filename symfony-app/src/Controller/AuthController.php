@@ -5,33 +5,41 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\AuthToken;
-use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class AuthController extends AbstractController
 {
-    #[Route('/auth/{username}/{token}', name: 'auth_login')]
-    public function login(string $username, string $token, EntityManagerInterface $entityManager, Request $request): Response
+    #[Route('/login', name: 'auth_login', methods: ['GET', 'POST'])]
+    public function login(EntityManagerInterface $entityManager, Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
     {
+        if ($request->isMethod('GET')) {
+            return $this->render('auth/login.html.twig', [
+                'csrf_token' => $csrfTokenManager->getToken('login')->getValue(),
+            ]);
+        }
+
+        if (!$this->isCsrfTokenValid('login', $request->request->get('_csrf_token'))) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $token = $request->request->get('token', '');
+
         $tokenEntity = $entityManager
             ->getRepository(AuthToken::class)
             ->findOneBy(['token' => $token]);
 
         if (!$tokenEntity instanceof AuthToken) {
-            return new Response('Invalid token', 401);
+            $this->addFlash('error', 'Invalid token.');
+            return $this->redirectToRoute('auth_login');
         }
 
-        $userEntity = $entityManager
-            ->getRepository(User::class)
-            ->findOneBy(['username' => $username]);
-
-        if (!$userEntity instanceof User) {
-            return new Response('User not found', 404);
-        }
+        $userEntity = $tokenEntity->getUser();
 
         $session = $request->getSession();
         $session->set('user_id', $userEntity->getId());
