@@ -20,6 +20,6 @@ Moje commity zwiazane z zad 1:
   - Obsługa `GET /login` renderuje formularz i generuje token CSRF; obsługa `POST /login` waliduje CSRF, sprawdza token w bazie i zapisuje użytkownika w sesji.
   - Dodano szablon `templates/auth/login.html.twig` z formularzem logowania (pole na token, ukryte pole `_csrf_token`, przycisk submit).
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Move Docker secrets to .env and add .env.example
+[`a8295f31`](https://github.com/tehcarlos777/SymfonyApp/commit/a8295f31) Move Docker secrets to .env and add .env.example
   - W `docker-compose.yml` usunięto stałe dane logowania do PostgreSQL (`postgres`/`postgres`) oraz domyślne wartości `${VAR:-sekret}` dla Phoenix i Symfony. Sekrety i hasła są teraz pobierane wyłącznie ze zmiennych środowiskowych, a składnia `${NAZWA:?komunikat}` wymusza ich ustawienie przed uruchomieniem Compose. Dzięki temu brak konfiguracji kończy się błędem zamiast uruchomieniem stacku z przewidywalnymi sekretami.
   - Dodano szablon `.env.example` z zmiennymi dla baz Phoenix i Symfony, URL-ami połączeń oraz przykładowymi wartościami na potrzeby lokalnego developmentu. W README opisano skopiowanie `.env.example` do lokalnego środowiska, przed uruchomieniem `docker compose up`.
