@@ -14,6 +14,15 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class AuthController extends AbstractController
 {
+    public function __construct(private readonly string $tokenHmacSecret)
+    {
+    }
+
+    private function hashToken(string $plaintext): string
+    {
+        return hash_hmac('sha256', $plaintext, $this->tokenHmacSecret);
+    }
+
     #[Route('/login', name: 'auth_login', methods: ['GET', 'POST'])]
     public function login(EntityManagerInterface $entityManager, Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
     {
@@ -28,13 +37,14 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        $token = $request->request->get('token', '');
+        $plaintext = $request->request->get('token', '');
+        $hash = $this->hashToken($plaintext);
 
         $tokenEntity = $entityManager
             ->getRepository(AuthToken::class)
-            ->findOneBy(['token' => $token]);
+            ->findOneBy(['token' => $hash]);
 
-        if (!$tokenEntity instanceof AuthToken) {
+        if (!$tokenEntity instanceof AuthToken || !hash_equals($tokenEntity->getToken(), $hash)) {
             $this->addFlash('error', 'Invalid token.');
             return $this->redirectToRoute('auth_login');
         }

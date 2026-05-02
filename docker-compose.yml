@@ -53,6 +53,7 @@ services:
     environment:
       APP_ENV: dev
       APP_SECRET: ${SYMFONY_APP_SECRET:?Set SYMFONY_APP_SECRET in .env}
+      AUTH_TOKEN_HMAC_SECRET: ${SYMFONY_AUTH_TOKEN_HMAC_SECRET:?Set SYMFONY_AUTH_TOKEN_HMAC_SECRET in .env}
       PHOENIX_BASE_URL: http://phoenix:4000
       DATABASE_URL: ${SYMFONY_DATABASE_URL:?Set SYMFONY_DATABASE_URL in .env (must match symfony-db credentials)}
     ports:

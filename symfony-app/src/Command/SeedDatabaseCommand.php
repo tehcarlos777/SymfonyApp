@@ -7,7 +7,9 @@ namespace App\Command;
 use App\Entity\AuthToken;
 use App\Entity\Photo;
 use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,9 +23,15 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class SeedDatabaseCommand extends Command
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly string $tokenHmacSecret,
     ) {
         parent::__construct();
+    }
+
+    private function hashToken(string $plaintext): string
+    {
+        return hash_hmac('sha256', $plaintext, $this->tokenHmacSecret);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -88,14 +96,21 @@ class SeedDatabaseCommand extends Command
 
         // Create auth tokens for each user
         foreach ($users as $user) {
-            $token = bin2hex(random_bytes(32));
+            try {
+                $plaintext = bin2hex(random_bytes(32));
+            } catch (Exception) {
+                $io->error(sprintf('Failed to generate auth token for user: %s', $user->getUsername()));
+
+                return Command::FAILURE;
+            }
+
             $authToken = new AuthToken();
-            $authToken->setToken($token)
+            $authToken->setToken($this->hashToken($plaintext))
                 ->setUser($user);
 
             $this->entityManager->persist($authToken);
 
-            $io->text("Created auth token for {$user->getUsername()}: {$token}");
+            $io->text("Created auth token for {$user->getUsername()}: $plaintext  (store this — only the hash is saved in the DB)");
         }
 
         $this->entityManager->flush();
@@ -201,12 +216,20 @@ class SeedDatabaseCommand extends Command
         ];
 
         foreach ($photosData as $photoData) {
+            try {
+                $takenAt = new DateTimeImmutable($photoData['takenAt']);
+            } catch (Exception) {
+                $io->error(sprintf('Invalid photo date "%s" for description: %s', $photoData['takenAt'], $photoData['description']));
+
+                return Command::FAILURE;
+            }
+
             $photo = new Photo();
             $photo->setImageUrl($photoData['imageUrl'])
                 ->setLocation($photoData['location'])
                 ->setDescription($photoData['description'])
                 ->setCamera($photoData['camera'])
-                ->setTakenAt(new \DateTimeImmutable($photoData['takenAt']))
+                ->setTakenAt($takenAt)
                 ->setUser($users[$photoData['userIndex']]);
 
             $this->entityManager->persist($photo);

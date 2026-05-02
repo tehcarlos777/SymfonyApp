@@ -23,3 +23,16 @@ Moje commity zwiazane z zad 1:
 [`a8295f31`](https://github.com/tehcarlos777/SymfonyApp/commit/a8295f31) Move Docker secrets to .env and add .env.example
   - W `docker-compose.yml` usunięto stałe dane logowania do PostgreSQL (`postgres`/`postgres`) oraz domyślne wartości `${VAR:-sekret}` dla Phoenix i Symfony. Sekrety i hasła są teraz pobierane wyłącznie ze zmiennych środowiskowych, a składnia `${NAZWA:?komunikat}` wymusza ich ustawienie przed uruchomieniem Compose. Dzięki temu brak konfiguracji kończy się błędem zamiast uruchomieniem stacku z przewidywalnymi sekretami.
   - Dodano szablon `.env.example` z zmiennymi dla baz Phoenix i Symfony, URL-ami połączeń oraz przykładowymi wartościami na potrzeby lokalnego developmentu. W README opisano skopiowanie `.env.example` do lokalnego środowiska, przed uruchomieniem `docker compose up`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Hash Symfony auth tokens before storing in database
+  - `AuthController` i `SeedDatabaseCommand` dostają dedykowany sekret HMAC przez `services.yaml` (`%env(AUTH_TOKEN_HMAC_SECRET)%`)
+  - Seed generuje losowy text (`bin2hex(random_bytes(32))`), wyświetla go operatorowi w terminalu i zapisuje do bazy wyłącznie skrót `hash_hmac('sha256', $plaintext, $tokenHmacSecret)`.
+  - Przy logowaniu `AuthController` hashuje przesłany token tym samym kluczem, szuka w bazie po hashu i porównuje z `hash_equals`.
+  - Dzięki temu plaintext nigdy nie trafia do bazy — nawet wyciek DB nie daje atakującemu działających tokenów bez znajomości sekretu HMAC tokenów.
+
+Propozycja do wdrożenia później:
+  - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
+  - W bazie trzymać tylko `selector` (indeksowany, jawny identyfikator) oraz `verifier_hash` liczony przez `password_hash(..., PASSWORD_ARGON2ID)`.
+  - Przy logowaniu: wyszukiwać rekord po `selector`, a następnie robić `password_verify(secret, verifier_hash)`.
+  - Dodać `expires_at`, `revoked_at`, `last_used_at` i odrzucać tokeny wygasłe/cofnięte oraz aktywne po rotacji.
+  - Limiter prób logowania po IP/użytkowniku i pełny audyt zdarzeń auth (`success`/`fail`/`revoked`) w logach aplikacyjnych.

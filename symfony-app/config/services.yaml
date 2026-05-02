@@ -2,6 +2,8 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            string $tokenHmacSecret: '%env(AUTH_TOKEN_HMAC_SECRET)%'
 
     App\:
         resource: '../src/'
