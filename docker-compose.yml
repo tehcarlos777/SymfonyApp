@@ -5,9 +5,9 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: phoenix_api
+      POSTGRES_USER: ${PHOENIX_POSTGRES_USER:?Set PHOENIX_POSTGRES_USER in .env (see .env.example)}
+      POSTGRES_PASSWORD: ${PHOENIX_POSTGRES_PASSWORD:?Set PHOENIX_POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${PHOENIX_POSTGRES_DB:?Set PHOENIX_POSTGRES_DB in .env}
     volumes:
       - phoenix-db-data:/var/lib/postgresql/data
     ports:
@@ -17,24 +17,24 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: symfony_app
+      POSTGRES_USER: ${SYMFONY_POSTGRES_USER:?Set SYMFONY_POSTGRES_USER in .env (see .env.example)}
+      POSTGRES_PASSWORD: ${SYMFONY_POSTGRES_PASSWORD:?Set SYMFONY_POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${SYMFONY_POSTGRES_DB:?Set SYMFONY_POSTGRES_DB in .env}
     volumes:
       - symfony-db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
   phoenix:
-    build: 
+    build:
       context: ./phoenix-api
       dockerfile: Dockerfile
       target: dev
     depends_on:
       - phoenix-db
     environment:
-      DATABASE_URL: ecto://postgres:postgres@phoenix-db/phoenix_api
-      SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE:-thisisasecret111}
+      DATABASE_URL: ${PHOENIX_DATABASE_URL:?Set PHOENIX_DATABASE_URL in .env (must match phoenix-db credentials)}
+      SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE:?Set PHOENIX_SECRET_KEY_BASE in .env}
       PHX_HOST: 0.0.0.0
       PORT: 4000
     ports:
@@ -52,9 +52,9 @@ services:
       - phoenix
     environment:
       APP_ENV: dev
-      APP_SECRET: ${SYMFONY_APP_SECRET:-thisisasecret222}
+      APP_SECRET: ${SYMFONY_APP_SECRET:?Set SYMFONY_APP_SECRET in .env}
       PHOENIX_BASE_URL: http://phoenix:4000
-      DATABASE_URL: postgres://postgres:postgres@symfony-db:5432/symfony_app
+      DATABASE_URL: ${SYMFONY_DATABASE_URL:?Set SYMFONY_DATABASE_URL in .env (must match symfony-db credentials)}
     ports:
       - "8000:8000"
     volumes:

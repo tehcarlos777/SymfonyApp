@@ -12,6 +12,10 @@ Ten projekt składa się z dwóch oddzielnych aplikacji z własnymi bazami danyc
 
 ## Szybki start
 ```bash
+cp .env.example .env
+# Windows PowerShell: Copy-Item .env.example .env
+# Dla środowisk innych niż lokalne wygeneruj własne wartości (hasła, PHOENIX_SECRET_KEY_BASE, SYMFONY_APP_SECRET).
+
 docker-compose up -d
 
 # Instalacja zależności Symfony i Phoenix
