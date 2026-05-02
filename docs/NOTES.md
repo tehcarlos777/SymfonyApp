@@ -24,11 +24,17 @@ Moje commity zwiazane z zad 1:
   - W `docker-compose.yml` usunięto stałe dane logowania do PostgreSQL (`postgres`/`postgres`) oraz domyślne wartości `${VAR:-sekret}` dla Phoenix i Symfony. Sekrety i hasła są teraz pobierane wyłącznie ze zmiennych środowiskowych, a składnia `${NAZWA:?komunikat}` wymusza ich ustawienie przed uruchomieniem Compose. Dzięki temu brak konfiguracji kończy się błędem zamiast uruchomieniem stacku z przewidywalnymi sekretami.
   - Dodano szablon `.env.example` z zmiennymi dla baz Phoenix i Symfony, URL-ami połączeń oraz przykładowymi wartościami na potrzeby lokalnego developmentu. W README opisano skopiowanie `.env.example` do lokalnego środowiska, przed uruchomieniem `docker compose up`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Hash Symfony auth tokens before storing in database
+[`32646d87`](https://github.com/tehcarlos777/SymfonyApp/commit/32646d87) Hash Symfony auth tokens before storing in database
   - `AuthController` i `SeedDatabaseCommand` dostają dedykowany sekret HMAC przez `services.yaml` (`%env(AUTH_TOKEN_HMAC_SECRET)%`)
   - Seed generuje losowy text (`bin2hex(random_bytes(32))`), wyświetla go operatorowi w terminalu i zapisuje do bazy wyłącznie skrót `hash_hmac('sha256', $plaintext, $tokenHmacSecret)`.
   - Przy logowaniu `AuthController` hashuje przesłany token tym samym kluczem, szuka w bazie po hashu i porównuje z `hash_equals`.
   - Dzięki temu plaintext nigdy nie trafia do bazy — nawet wyciek DB nie daje atakującemu działających tokenów bez znajomości sekretu HMAC tokenów.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add PHPUnit tests for login CSRF and token hashing
+  - Dodano testy funkcjonalne `WebTestCase` dla `/login`: `GET` renderuje ukryte pole `_csrf_token`; `POST` z błędnym CSRF kończy się przekierowaniem na `/login` i komunikatem flash „Invalid CSRF token.”.
+  - Dodano test jednostkowy `AuthController` dla scenariusza: CSRF poprawny, token niepasujący do bazy — oczekiwane przekierowanie na `/login` i flash „Invalid token.” (mock repozytorium zamiast podmiany `EntityManager` w kernelu).
+  - Dodano test kontraktu HMAC: `AuthController` i `SeedDatabaseCommand` muszą dawać identyczny `hash_hmac('sha256', …)` dla tego samego sekretu.
+  - W `symfony-app/phpunit.xml.dist` dodano minimalne zmienne środowiskowe testowe (`APP_SECRET`, `AUTH_TOKEN_HMAC_SECRET`, `DATABASE_URL`), żeby kernel i kontener DI budowały się w `APP_ENV=test` bez zależności od lokalnego `.env`.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
@@ -36,3 +42,4 @@ Propozycja do wdrożenia później:
   - Przy logowaniu: wyszukiwać rekord po `selector`, a następnie robić `password_verify(secret, verifier_hash)`.
   - Dodać `expires_at`, `revoked_at`, `last_used_at` i odrzucać tokeny wygasłe/cofnięte oraz aktywne po rotacji.
   - Limiter prób logowania po IP/użytkowniku i pełny audyt zdarzeń auth (`success`/`fail`/`revoked`) w logach aplikacyjnych.
+  - W `phoenix-api`: przechowywać `api_token` w bazie jako hash, zaktualizować seed (`priv/repo/seeds.exs`) oraz plug autoryzacji (`lib/.../authenticate.ex`), żeby nagłówek `access-token` był porównywany z hashem zamiast z plaintextem w kolumnie `users.api_token`.
