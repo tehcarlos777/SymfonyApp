@@ -11,6 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
 
 final class LikeRepository extends ServiceEntityRepository implements LikeRepositoryInterface
 {
+    private const COND_USER = 'l.user = :user';
+
     private ?User $user;
 
     public function __construct(ManagerRegistry $registry)
@@ -31,7 +33,7 @@ final class LikeRepository extends ServiceEntityRepository implements LikeReposi
         $like = $em->createQueryBuilder()
             ->select('l')
             ->from(Like::class, 'l')
-            ->where('l.user = :user')
+            ->where(self::COND_USER)
             ->andWhere('l.photo = :photo')
             ->setParameter('user', $this->user)
             ->setParameter('photo', $photo)
@@ -55,7 +57,7 @@ final class LikeRepository extends ServiceEntityRepository implements LikeReposi
     {
         $likes = $this->createQueryBuilder('l')
             ->select('l.id')
-            ->where('l.user = :user')
+            ->where(self::COND_USER)
             ->andWhere('l.photo = :photo')
             ->setParameter('user', $this->user)
             ->setParameter('photo', $photo)
@@ -63,6 +65,30 @@ final class LikeRepository extends ServiceEntityRepository implements LikeReposi
             ->getArrayResult();
 
         return count($likes) > 0;
+    }
+
+    /**
+     * @param list<int> $photoIds
+     *
+     * @return list<int> Subset of $photoIds that the user has liked
+     */
+    public function findLikedPhotoIdsForUser(User $user, array $photoIds): array
+    {
+        if ($photoIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('l')
+            ->select('p.id')
+            ->innerJoin('l.photo', 'p')
+            ->where(self::COND_USER)
+            ->andWhere('p.id IN (:photoIds)')
+            ->setParameter('user', $user)
+            ->setParameter('photoIds', $photoIds)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): int => (int) $row['id'], $rows);
     }
 
     #[\Override]

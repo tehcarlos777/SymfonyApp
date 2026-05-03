@@ -30,11 +30,15 @@ Moje commity zwiazane z zad 1:
   - Przy logowaniu `AuthController` hashuje przesłany token tym samym kluczem, szuka w bazie po hashu i porównuje z `hash_equals`.
   - Dzięki temu plaintext nigdy nie trafia do bazy — nawet wyciek DB nie daje atakującemu działających tokenów bez znajomości sekretu HMAC tokenów.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add PHPUnit tests for login CSRF and token hashing
+[`ff192be`](https://github.com/tehcarlos777/SymfonyApp/commit/ff192be) Add PHPUnit tests for login CSRF and token hashing
   - Dodano testy funkcjonalne `WebTestCase` dla `/login`: `GET` renderuje ukryte pole `_csrf_token`; `POST` z błędnym CSRF kończy się przekierowaniem na `/login` i komunikatem flash „Invalid CSRF token.”.
   - Dodano test jednostkowy `AuthController` dla scenariusza: CSRF poprawny, token niepasujący do bazy — oczekiwane przekierowanie na `/login` i flash „Invalid token.” (mock repozytorium zamiast podmiany `EntityManager` w kernelu).
   - Dodano test kontraktu HMAC: `AuthController` i `SeedDatabaseCommand` muszą dawać identyczny `hash_hmac('sha256', …)` dla tego samego sekretu.
   - W `symfony-app/phpunit.xml.dist` dodano minimalne zmienne środowiskowe testowe (`APP_SECRET`, `AUTH_TOKEN_HMAC_SECRET`, `DATABASE_URL`), żeby kernel i kontener DI budowały się w `APP_ENV=test` bez zależności od lokalnego `.env`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Batch user likes
+  - W `docker-compose.yml` usunięto pole `version` (w nowym Compose jest ignorowane i generowało ostrzeżenie).
+  - Na stronie głównej wyeliminowano N+1 dla polubień: dodano `LikeRepository::findLikedPhotoIdsForUser(User, array $photoIds)` — jedno zapytanie z `IN (:photoIds)` zamiast `hasUserLikedPhoto()` w pętli po każdym zdjęciu; `HomeController` buduje z tego mapę `userLikes` bez dodatkowych zapytań w pętli.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
