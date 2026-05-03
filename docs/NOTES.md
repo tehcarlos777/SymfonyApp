@@ -40,7 +40,7 @@ Moje commity zwiazane z zad 1:
   - W `docker-compose.yml` usunięto pole `version` (w nowym Compose jest ignorowane i generowało ostrzeżenie).
   - Na stronie głównej wyeliminowano N+1 dla polubień: dodano `LikeRepository::findLikedPhotoIdsForUser(User, array $photoIds)` — jedno zapytanie z `IN (:photoIds)` zamiast `hasUserLikedPhoto()` w pętli po każdym zdjęciu; `HomeController` buduje z tego mapę `userLikes` bez dodatkowych zapytań w pętli.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Inject repositories via constructor in HomeController
+[`8ca5005`](https://github.com/tehcarlos777/SymfonyApp/commit/8ca5005) Inject repositories via constructor in HomeController
   - Usunięto ręczne tworzenie `new PhotoRepository($managerRegistry)` i `new LikeRepository($managerRegistry)` wewnątrz metody `index()`.
   - Repozytoria są teraz wstrzykiwane przez konstruktor (`private readonly`) — Symfony DI container zarządza ich cyklem życia przez autowiring.
   - Usunięto zbędny import `ManagerRegistry` i parametr `$managerRegistry` z sygnatury metody.
@@ -54,3 +54,6 @@ Propozycja do wdrożenia później:
   - Limiter prób logowania po IP/użytkowniku i pełny audyt zdarzeń auth (`success`/`fail`/`revoked`) w logach aplikacyjnych.
   - W `phoenix-api`: przechowywać `api_token` w bazie jako hash, zaktualizować seed (`priv/repo/seeds.exs`) oraz plug autoryzacji (`lib/.../authenticate.ex`), żeby nagłówek `access-token` był porównywany z hashem zamiast z plaintextem w kolumnie `users.api_token`.
   - Dodać paginację feedu (`?page=N`, `LIMIT`/`OFFSET` w `PhotoRepository`, linki prev/next w szablonie).
+  - Zastąpić ręczną autoryzację sesji (`$session->get('user_id')` w kontrolerach) dedykowanym `App\Security\TokenAuthenticator extends AbstractAuthenticator` i przywrócić firewall w `security.yaml`. Dzięki temu Symfony samo wstrzykuje zalogowanego użytkownika przez `#[CurrentUser]` lub `getUser()`, a kontrolery przestają odpytywać sesję bezpośrednio.
+  - Dodać migrację z indeksem `UNIQUE(user_id, photo_id)` na tabeli `likes` oraz owinąć zapis polubienia i aktualizację licznika w pojedynczą transakcję (`$em->wrapInTransaction(...)`). Bez tego race condition przy równoczesnych kliknięciach może zduplikować rekord lub dać błędny licznik.
+  - Dodać pipeline CI (np. GitHub Actions), który przy każdym PR uruchamia `composer cs:check` i `composer test`. Narzędzia są już skonfigurowane — bez CI nikt ich nie uruchamia i standardy stopniowo się rozjeżdżają.
