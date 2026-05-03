@@ -50,10 +50,16 @@ Moje commity zwiazane z zad 1:
   - W `LikeRepository` zastąpiono aliasy DQL `l` → `likeEntity` oraz `p` → `photo` (w tym `innerJoin`, `select`/`where`/`andWhere` oraz stała `COND_USER`), żeby zapytania czytały się bliżej nazw encji i relacji.
   - W `PhotoRepository::findAllWithUsers()` zastąpiono `p`/`u` aliasami `photo`/`user` w `leftJoin`, `addSelect` i `orderBy`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add Login button
+[`ee86a0a0`](https://github.com/tehcarlos777/SymfonyApp/commit/ee86a0a0) Add Login button
   - W `symfony-app/templates/base.html.twig` dodano przycisk `🔑 Login` prowadzący do endpointu `auth_login` (`/login`), żeby użytkownik miał bezpośrednią ścieżkę do formularza logowania.
   - Przycisk renderuje się tylko gdy brak `user_id` w sesji; po zalogowaniu nadal pokazuje się wyłącznie menu profilu (`My Profile` + `Logout`).
   - Dla trasy `auth_login` przycisk jest ukryty
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Symfony-app: Add Phoenix import columns and DB migration
+- Migracja `symfony-app/migrations/Version20260503181000.php`: kolumna `users.phoenix_api_token` (wartość nagłówka `access-token` używana do wywołań Phoenix), kolumna `photos.phoenix_photo_id` (identyfikator zdjęcia z Phoenix — pole `id` z JSON-a odpowiedzi), indeks `idx_photos_phoenix_photo_id` oraz **częściowy** unikalny indeks `(user_id, phoenix_photo_id) WHERE phoenix_photo_id IS NOT NULL` w PostgreSQL — zapobiega duplikatom importu dla jednego użytkownika Symfony.
+- Encje: `User::$phoenixApiToken`, `Photo::$phoenixPhotoId` + gettery/settery zgodne z mapowaniem Doctrine.
+- `PhotoRepository::findOneByUserAndPhoenixPhotoId()` — szybki lookup przed `persist`, żeby ponowny import nie tworzył duplikatów.
+- `services.yaml` binduje `PHOENIX_BASE_URL` jako `$phoenixBaseUrl` — w Dockerze `http://phoenix:4000` (kontenery z tego samego `docker-compose` łączą się po nazwie serwisu); poza Dockerem `http://localhost:4000`.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
@@ -66,5 +72,5 @@ Propozycja do wdrożenia później:
   - Zastąpić ręczną autoryzację sesji (`$session->get('user_id')` w kontrolerach) dedykowanym `App\Security\TokenAuthenticator extends AbstractAuthenticator` i przywrócić firewall w `security.yaml`. Dzięki temu Symfony samo wstrzykuje zalogowanego użytkownika przez `#[CurrentUser]` lub `getUser()`, a kontrolery przestają odpytywać sesję bezpośrednio.
   - Dodać migrację z indeksem `UNIQUE(user_id, photo_id)` na tabeli `likes` oraz owinąć zapis polubienia i aktualizację licznika w pojedynczą transakcję (`$em->wrapInTransaction(...)`). Bez tego race condition przy równoczesnych kliknięciach może zduplikować rekord lub dać błędny licznik.
   - Dodać pipeline CI (np. GitHub Actions), który przy każdym PR uruchamia `composer cs:check` i `composer test`. Narzędzia są już skonfigurowane — bez CI nikt ich nie uruchamia i standardy stopniowo się rozjeżdżają.
-  - Internacjonalizacja (i18n): skonfigurować `translator` i locale (np. prefiks w URL lub wybór w sesji)
-  - Dodać favicon
+  - Internacjonalizacja (i18n): skonfigurować `translator` i locale (np. prefiks w URL lub wybór w sesji), zebrać stringi z Twig i kontrolerów do katalogów tłumaczeń (`messages.{locale}.yaml` / XLIFF) zamiast duplikować szablony na każdy język.
+  - Dodać favicon do aplikacji

@@ -35,6 +35,9 @@ class User
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $bio = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $phoenixApiToken = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Photo::class, cascade: ['persist', 'remove'])]
     private Collection $photos;
 
@@ -114,6 +117,18 @@ class User
         return $this;
     }
 
+    public function getPhoenixApiToken(): ?string
+    {
+        return $this->phoenixApiToken;
+    }
+
+    public function setPhoenixApiToken(?string $phoenixApiToken): self
+    {
+        $this->phoenixApiToken = $phoenixApiToken;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Photo>
      */
@@ -134,10 +149,8 @@ class User
 
     public function removePhoto(Photo $photo): self
     {
-        if ($this->photos->removeElement($photo)) {
-            if ($photo->getUser() === $this) {
-                $photo->setUser(null);
-            }
+        if ($this->photos->removeElement($photo) && $photo->getUser() === $this) {
+            $photo->setUser(null);
         }
 
         return $this;

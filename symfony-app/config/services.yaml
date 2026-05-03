@@ -4,6 +4,7 @@ services:
         autoconfigure: true
         bind:
             string $tokenHmacSecret: '%env(AUTH_TOKEN_HMAC_SECRET)%'
+            string $phoenixBaseUrl: '%env(PHOENIX_BASE_URL)%'
 
     App\:
         resource: '../src/'
