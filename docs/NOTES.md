@@ -36,9 +36,15 @@ Moje commity zwiazane z zad 1:
   - Dodano test kontraktu HMAC: `AuthController` i `SeedDatabaseCommand` muszą dawać identyczny `hash_hmac('sha256', …)` dla tego samego sekretu.
   - W `symfony-app/phpunit.xml.dist` dodano minimalne zmienne środowiskowe testowe (`APP_SECRET`, `AUTH_TOKEN_HMAC_SECRET`, `DATABASE_URL`), żeby kernel i kontener DI budowały się w `APP_ENV=test` bez zależności od lokalnego `.env`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Batch user likes
+[`550f3852`](https://github.com/tehcarlos777/SymfonyApp/commit/550f3852) Batch user likes
   - W `docker-compose.yml` usunięto pole `version` (w nowym Compose jest ignorowane i generowało ostrzeżenie).
   - Na stronie głównej wyeliminowano N+1 dla polubień: dodano `LikeRepository::findLikedPhotoIdsForUser(User, array $photoIds)` — jedno zapytanie z `IN (:photoIds)` zamiast `hasUserLikedPhoto()` w pętli po każdym zdjęciu; `HomeController` buduje z tego mapę `userLikes` bez dodatkowych zapytań w pętli.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Inject repositories via constructor in HomeController
+  - Usunięto ręczne tworzenie `new PhotoRepository($managerRegistry)` i `new LikeRepository($managerRegistry)` wewnątrz metody `index()`.
+  - Repozytoria są teraz wstrzykiwane przez konstruktor (`private readonly`) — Symfony DI container zarządza ich cyklem życia przez autowiring.
+  - Usunięto zbędny import `ManagerRegistry` i parametr `$managerRegistry` z sygnatury metody.
+  - Zastąpiono adnotację `@Route` nowoczesnym atrybutem PHP `#[Route]` i usunięto mylący `@return JsonResponse` (metoda zwraca `Response`).
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
@@ -47,3 +53,4 @@ Propozycja do wdrożenia później:
   - Dodać `expires_at`, `revoked_at`, `last_used_at` i odrzucać tokeny wygasłe/cofnięte oraz aktywne po rotacji.
   - Limiter prób logowania po IP/użytkowniku i pełny audyt zdarzeń auth (`success`/`fail`/`revoked`) w logach aplikacyjnych.
   - W `phoenix-api`: przechowywać `api_token` w bazie jako hash, zaktualizować seed (`priv/repo/seeds.exs`) oraz plug autoryzacji (`lib/.../authenticate.ex`), żeby nagłówek `access-token` był porównywany z hashem zamiast z plaintextem w kolumnie `users.api_token`.
+  - Dodać paginację feedu (`?page=N`, `LIMIT`/`OFFSET` w `PhotoRepository`, linki prev/next w szablonie).

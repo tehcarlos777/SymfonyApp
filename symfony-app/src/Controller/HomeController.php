@@ -8,25 +8,22 @@ use App\Entity\User;
 use App\Likes\LikeRepository;
 use App\Repository\PhotoRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    /**
-     * @Route("/", name="home")
-     * @return JsonResponse
-     */
-    public function index(Request $request, EntityManagerInterface $em, ManagerRegistry $managerRegistry): Response
-    {
-        $photoRepository = new PhotoRepository($managerRegistry);
-        $likeRepository = new LikeRepository($managerRegistry);
+    public function __construct(
+        private readonly PhotoRepository $photoRepository,
+        private readonly LikeRepository $likeRepository,
+    ) {}
 
-        $photos = $photoRepository->findAllWithUsers();
+    #[Route('/', name: 'home')]
+    public function index(Request $request, EntityManagerInterface $em): Response
+    {
+        $photos = $this->photoRepository->findAllWithUsers();
 
         $session = $request->getSession();
         $userId = $session->get('user_id');
@@ -38,7 +35,7 @@ class HomeController extends AbstractController
 
             if ($currentUser) {
                 $photoIds = array_map(static fn ($photo) => $photo->getId(), $photos);
-                $likedPhotoIds = $likeRepository->findLikedPhotoIdsForUser($currentUser, $photoIds);
+                $likedPhotoIds = $this->likeRepository->findLikedPhotoIdsForUser($currentUser, $photoIds);
                 $likedLookup = array_flip($likedPhotoIds);
 
                 foreach ($photos as $photo) {
