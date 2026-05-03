@@ -55,11 +55,16 @@ Moje commity zwiazane z zad 1:
   - Przycisk renderuje się tylko gdy brak `user_id` w sesji; po zalogowaniu nadal pokazuje się wyłącznie menu profilu (`My Profile` + `Logout`).
   - Dla trasy `auth_login` przycisk jest ukryty
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Symfony-app: Add Phoenix import columns and DB migration
+[`ac057e13`](https://github.com/tehcarlos777/SymfonyApp/commit/ac057e13) Symfony-app: Add Phoenix import columns and DB migration
 - Migracja `symfony-app/migrations/Version20260503181000.php`: kolumna `users.phoenix_api_token` (wartość nagłówka `access-token` używana do wywołań Phoenix), kolumna `photos.phoenix_photo_id` (identyfikator zdjęcia z Phoenix — pole `id` z JSON-a odpowiedzi), indeks `idx_photos_phoenix_photo_id` oraz **częściowy** unikalny indeks `(user_id, phoenix_photo_id) WHERE phoenix_photo_id IS NOT NULL` w PostgreSQL — zapobiega duplikatom importu dla jednego użytkownika Symfony.
 - Encje: `User::$phoenixApiToken`, `Photo::$phoenixPhotoId` + gettery/settery zgodne z mapowaniem Doctrine.
 - `PhotoRepository::findOneByUserAndPhoenixPhotoId()` — szybki lookup przed `persist`, żeby ponowny import nie tworzył duplikatów.
 - `services.yaml` binduje `PHOENIX_BASE_URL` jako `$phoenixBaseUrl` — w Dockerze `http://phoenix:4000` (kontenery z tego samego `docker-compose` łączą się po nazwie serwisu); poza Dockerem `http://localhost:4000`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Symfony-app: import Phoenix photos from profile
+- `symfony-app/src/Import/PhoenixPhotoImporter.php`: `GET {PHOENIX_BASE_URL}/api/photos` z nagłówkiem `access-token`, obsługa błędów sieci (`TransportExceptionInterface` przy leniwym HttpClient — m.in. przy `getStatusCode()` / `toArray()`), mapowanie `id` → `phoenixPhotoId`, `photo_url` → `imageUrl`, zapis pod zalogowanym użytkownikiem Symfony, `flush()` na końcu.
+- `symfony-app/src/Controller/ProfileController.php`: `POST /profile/phoenix-token` (zapis tokenu z CSRF `save_phoenix_token`) oraz `POST /profile/import-photos` (import z CSRF `import_photos`), flash z podsumowaniem `dodano / pominięto / łącznie z API`.
+- `symfony-app/templates/profile/index.html.twig`: pole na token, przyciski „Zapisz token” i „Importuj zdjęcia z Phoenix” z tokenami CSRF.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.

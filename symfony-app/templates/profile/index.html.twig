@@ -145,6 +145,47 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        .import-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .import-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .input-text {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d6d6d6;
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            border: none;
+            border-radius: 22px;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            border: 1px solid #667eea;
+            border-radius: 22px;
+            padding: 10px 18px;
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 {% endblock %}
 
@@ -201,6 +242,30 @@
             <div class="stat-item">
                 <div class="stat-number">{{ user.photos|length }}</div>
                 <div class="stat-label">Photos</div>
+            </div>
+        </div>
+
+        <div class="import-section">
+            <div class="profile-field-label">Phoenix API Token</div>
+            <form action="{{ path('profile_phoenix_token_save') }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('save_phoenix_token') }}">
+                <input
+                    class="input-text"
+                    type="text"
+                    name="phoenix_api_token"
+                    value="{{ user.phoenixApiToken|default('') }}"
+                    placeholder="Wklej token access-token dla Phoenix"
+                >
+                <div class="import-actions">
+                    <button type="submit" class="btn-secondary">Zapisz token</button>
+                </div>
+            </form>
+
+            <div class="import-actions">
+                <form action="{{ path('profile_import_photos') }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('import_photos') }}">
+                    <button type="submit" class="btn-primary">Importuj zdjęcia z Phoenix</button>
+                </form>
             </div>
         </div>
         
