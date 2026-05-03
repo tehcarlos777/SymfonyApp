@@ -11,7 +11,7 @@ use Doctrine\Persistence\ManagerRegistry;
 
 final class LikeRepository extends ServiceEntityRepository implements LikeRepositoryInterface
 {
-    private const COND_USER = 'l.user = :user';
+    private const COND_USER = 'likeEntity.user = :user';
 
     private ?User $user;
 
@@ -31,10 +31,10 @@ final class LikeRepository extends ServiceEntityRepository implements LikeReposi
         $em = $this->getEntityManager();
 
         $like = $em->createQueryBuilder()
-            ->select('l')
-            ->from(Like::class, 'l')
+            ->select('likeEntity')
+            ->from(Like::class, 'likeEntity')
             ->where(self::COND_USER)
-            ->andWhere('l.photo = :photo')
+            ->andWhere('likeEntity.photo = :photo')
             ->setParameter('user', $this->user)
             ->setParameter('photo', $photo)
             ->setMaxResults(1)
@@ -55,10 +55,10 @@ final class LikeRepository extends ServiceEntityRepository implements LikeReposi
     #[\Override]
     public function hasUserLikedPhoto(Photo $photo): bool
     {
-        $likes = $this->createQueryBuilder('l')
-            ->select('l.id')
+        $likes = $this->createQueryBuilder('likeEntity')
+            ->select('likeEntity.id')
             ->where(self::COND_USER)
-            ->andWhere('l.photo = :photo')
+            ->andWhere('likeEntity.photo = :photo')
             ->setParameter('user', $this->user)
             ->setParameter('photo', $photo)
             ->getQuery()
@@ -78,11 +78,11 @@ final class LikeRepository extends ServiceEntityRepository implements LikeReposi
             return [];
         }
 
-        $rows = $this->createQueryBuilder('l')
-            ->select('p.id')
-            ->innerJoin('l.photo', 'p')
+        $rows = $this->createQueryBuilder('likeEntity')
+            ->select('photo.id')
+            ->innerJoin('likeEntity.photo', 'photo')
             ->where(self::COND_USER)
-            ->andWhere('p.id IN (:photoIds)')
+            ->andWhere('photo.id IN (:photoIds)')
             ->setParameter('user', $user)
             ->setParameter('photoIds', $photoIds)
             ->getQuery()

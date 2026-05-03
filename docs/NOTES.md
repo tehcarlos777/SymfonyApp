@@ -46,6 +46,10 @@ Moje commity zwiazane z zad 1:
   - Usunięto zbędny import `ManagerRegistry` i parametr `$managerRegistry` z sygnatury metody.
   - Zastąpiono adnotację `@Route` nowoczesnym atrybutem PHP `#[Route]` i usunięto mylący `@return JsonResponse` (metoda zwraca `Response`).
 
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Use descriptive DQL aliases in LikeRepository and PhotoRepository
+  - W `LikeRepository` zastąpiono aliasy DQL `l` → `likeEntity` oraz `p` → `photo` (w tym `innerJoin`, `select`/`where`/`andWhere` oraz stała `COND_USER`), żeby zapytania czytały się bliżej nazw encji i relacji.
+  - W `PhotoRepository::findAllWithUsers()` zastąpiono `p`/`u` aliasami `photo`/`user` w `leftJoin`, `addSelect` i `orderBy`.
+
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
   - W bazie trzymać tylko `selector` (indeksowany, jawny identyfikator) oraz `verifier_hash` liczony przez `password_hash(..., PASSWORD_ARGON2ID)`.

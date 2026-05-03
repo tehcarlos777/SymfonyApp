@@ -17,10 +17,10 @@ class PhotoRepository extends ServiceEntityRepository
 
     public function findAllWithUsers(): array
     {
-        return $this->createQueryBuilder('p')
-            ->leftJoin('p.user', 'u')
-            ->addSelect('u')
-            ->orderBy('p.id', 'ASC')
+        return $this->createQueryBuilder('photo')
+            ->leftJoin('photo.user', 'user')
+            ->addSelect('user')
+            ->orderBy('photo.id', 'ASC')
             ->getQuery()
             ->getResult();
     }
