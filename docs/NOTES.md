@@ -46,9 +46,14 @@ Moje commity zwiazane z zad 1:
   - Usunięto zbędny import `ManagerRegistry` i parametr `$managerRegistry` z sygnatury metody.
   - Zastąpiono adnotację `@Route` nowoczesnym atrybutem PHP `#[Route]` i usunięto mylący `@return JsonResponse` (metoda zwraca `Response`).
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Use descriptive DQL aliases in LikeRepository and PhotoRepository
+[`70b2be78`](https://github.com/tehcarlos777/SymfonyApp/commit/70b2be78) Use descriptive DQL aliases in LikeRepository and PhotoRepository
   - W `LikeRepository` zastąpiono aliasy DQL `l` → `likeEntity` oraz `p` → `photo` (w tym `innerJoin`, `select`/`where`/`andWhere` oraz stała `COND_USER`), żeby zapytania czytały się bliżej nazw encji i relacji.
   - W `PhotoRepository::findAllWithUsers()` zastąpiono `p`/`u` aliasami `photo`/`user` w `leftJoin`, `addSelect` i `orderBy`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add Login button
+  - W `symfony-app/templates/base.html.twig` dodano przycisk `🔑 Login` prowadzący do endpointu `auth_login` (`/login`), żeby użytkownik miał bezpośrednią ścieżkę do formularza logowania.
+  - Przycisk renderuje się tylko gdy brak `user_id` w sesji; po zalogowaniu nadal pokazuje się wyłącznie menu profilu (`My Profile` + `Logout`).
+  - Dla trasy `auth_login` przycisk jest ukryty
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
@@ -61,3 +66,5 @@ Propozycja do wdrożenia później:
   - Zastąpić ręczną autoryzację sesji (`$session->get('user_id')` w kontrolerach) dedykowanym `App\Security\TokenAuthenticator extends AbstractAuthenticator` i przywrócić firewall w `security.yaml`. Dzięki temu Symfony samo wstrzykuje zalogowanego użytkownika przez `#[CurrentUser]` lub `getUser()`, a kontrolery przestają odpytywać sesję bezpośrednio.
   - Dodać migrację z indeksem `UNIQUE(user_id, photo_id)` na tabeli `likes` oraz owinąć zapis polubienia i aktualizację licznika w pojedynczą transakcję (`$em->wrapInTransaction(...)`). Bez tego race condition przy równoczesnych kliknięciach może zduplikować rekord lub dać błędny licznik.
   - Dodać pipeline CI (np. GitHub Actions), który przy każdym PR uruchamia `composer cs:check` i `composer test`. Narzędzia są już skonfigurowane — bez CI nikt ich nie uruchamia i standardy stopniowo się rozjeżdżają.
+  - Internacjonalizacja (i18n): skonfigurować `translator` i locale (np. prefiks w URL lub wybór w sesji)
+  - Dodać favicon

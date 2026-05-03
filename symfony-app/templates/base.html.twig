@@ -40,6 +40,33 @@
             opacity: 0.9;
         }
         
+        .auth-nav-login {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .auth-nav-login-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: white;
+            border-radius: 999px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .auth-nav-login-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
         .profile-menu {
             position: fixed;
             top: 20px;
@@ -193,6 +220,10 @@
                 <div class="profile-dropdown-separator"></div>
                 <a href="{{ path('logout') }}">🚪 Logout</a>
             </div>
+        </div>
+    {% elseif app.request.attributes.get('_route') != 'auth_login' %}
+        <div class="auth-nav-login">
+            <a href="{{ path('auth_login') }}" class="auth-nav-login-link" title="Login">🔑 Login</a>
         </div>
     {% endif %}
     
