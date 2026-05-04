@@ -76,10 +76,13 @@ Moje commity zwiazane z zad 1:
 - W `docker-compose.yml` dodano dla Phoenix: `DB_HOST`, `DB_USER`, `DB_PASSWORD`.
 - W `phoenix-api/config/test.exs` zastąpiono hardcoded dane DB konfiguracją z `System.get_env(...)`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Expand and stabilize Phoenix API photo controller tests
+[`502f4969`](https://github.com/tehcarlos777/SymfonyApp/commit/502f4969) Expand and stabilize Phoenix API photo controller tests
 - Rozszerzono testy `phoenix-api/test/phoenix_api_web/controllers/photo_controller_test.exs` dla `GET /api/photos` (autoryzacja, filtrowanie po użytkowniku, kolejność po `id`, limit 500, przypadek pustej listy).
 - Ujednolicono uruchamianie testów w Dockerze (Symfony i Phoenix) oraz konfigurację testowego DB Phoenix przez zmienne środowiskowe.
 - W testach Phoenix usunięto warningi: `:warn` -> `:warning`, `use Phoenix.ConnTest` -> `import Plug.Conn` + `import Phoenix.ConnTest`, `new_user` -> `_new_user`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Fix Symfony container startup by making entrypoint executable
+- Naprawiono start kontenera Symfony przez nadanie uprawnień wykonania plikowi `symfony-app/entrypoint.sh` na świeżym buildzie.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
