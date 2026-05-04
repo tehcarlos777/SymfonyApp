@@ -61,10 +61,13 @@ Moje commity zwiazane z zad 1:
 - `PhotoRepository::findOneByUserAndPhoenixPhotoId()` — szybki lookup przed `persist`, żeby ponowny import nie tworzył duplikatów.
 - `services.yaml` binduje `PHOENIX_BASE_URL` jako `$phoenixBaseUrl` — w Dockerze `http://phoenix:4000` (kontenery z tego samego `docker-compose` łączą się po nazwie serwisu); poza Dockerem `http://localhost:4000`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Symfony-app: import Phoenix photos from profile
+[`2777c297`](https://github.com/tehcarlos777/SymfonyApp/commit/2777c297) Symfony-app: import Phoenix photos from profile
 - `symfony-app/src/Import/PhoenixPhotoImporter.php`: `GET {PHOENIX_BASE_URL}/api/photos` z nagłówkiem `access-token`, obsługa błędów sieci (`TransportExceptionInterface` przy leniwym HttpClient — m.in. przy `getStatusCode()` / `toArray()`), mapowanie `id` → `phoenixPhotoId`, `photo_url` → `imageUrl`, zapis pod zalogowanym użytkownikiem Symfony, `flush()` na końcu.
 - `symfony-app/src/Controller/ProfileController.php`: `POST /profile/phoenix-token` (zapis tokenu z CSRF `save_phoenix_token`) oraz `POST /profile/import-photos` (import z CSRF `import_photos`), flash z podsumowaniem `dodano / pominięto / łącznie z API`.
 - `symfony-app/templates/profile/index.html.twig`: pole na token, przyciski „Zapisz token” i „Importuj zdjęcia z Phoenix” z tokenami CSRF.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Phoenix-api: limit and order photo index
+- `phoenix-api/lib/phoenix_api_web/controllers/photo_controller.ex`: `GET /api/photos` — zmiana w zapytaniu: `order_by` rosnąco po `id`, `limit(500)` (`@photos_index_limit`).
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.

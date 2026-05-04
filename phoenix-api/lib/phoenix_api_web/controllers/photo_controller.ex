@@ -5,6 +5,8 @@ defmodule PhoenixApiWeb.PhotoController do
   alias PhoenixApi.Media.Photo
   import Ecto.Query
 
+  @photos_index_limit 500
+
   plug PhoenixApiWeb.Plugs.Authenticate
 
   def index(conn, _params) do
@@ -13,6 +15,8 @@ defmodule PhoenixApiWeb.PhotoController do
     photos =
       Photo
       |> where([p], p.user_id == ^current_user.id)
+      |> order_by([p], asc: p.id)
+      |> limit(@photos_index_limit)
       |> select([p], %{id: p.id, photo_url: p.photo_url})
       |> Repo.all()
 
