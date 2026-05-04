@@ -93,7 +93,7 @@ defmodule PhoenixApiWeb.PhotoControllerTest do
     end
 
     test "returns empty array when user has no photos", %{conn: conn} do
-      new_user =
+      _new_user =
         %User{}
         |> User.changeset(%{api_token: "new_user_token"})
         |> Repo.insert!()
@@ -134,6 +134,60 @@ defmodule PhoenixApiWeb.PhotoControllerTest do
       response = json_response(conn, 200)
       assert length(response["photos"]) == 1
       assert Enum.at(response["photos"], 0)["photo_url"] == "https://example.com/photo3.jpg"
+    end
+
+    test "returns photos ordered by ascending id", %{conn: conn, photo1: photo1, photo2: photo2} do
+      conn =
+        conn
+        |> put_req_header("access-token", "valid_test_token_123")
+        |> get("/api/photos")
+
+      ids =
+        conn
+        |> json_response(200)
+        |> Map.get("photos")
+        |> Enum.map(& &1["id"])
+
+      assert ids == Enum.sort(ids)
+      assert ids == [photo1.id, photo2.id]
+    end
+  end
+
+  describe "GET /api/photos limit" do
+    setup %{conn: conn} do
+      user =
+        %User{}
+        |> User.changeset(%{api_token: "limit_bulk_token"})
+        |> Repo.insert!()
+
+      now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+      rows =
+        for i <- 1..501 do
+          %{
+            photo_url: "https://example.com/limit/#{i}.jpg",
+            user_id: user.id,
+            inserted_at: now,
+            updated_at: now
+          }
+        end
+
+      {501, _} = Repo.insert_all(Photo, rows)
+
+      {:ok, conn: conn}
+    end
+
+    test "returns at most 500 photos", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("access-token", "limit_bulk_token")
+        |> get("/api/photos")
+
+      response = json_response(conn, 200)
+      assert length(response["photos"]) == 500
+
+      ids = Enum.map(response["photos"], & &1["id"])
+      assert ids == Enum.sort(ids)
     end
   end
 end

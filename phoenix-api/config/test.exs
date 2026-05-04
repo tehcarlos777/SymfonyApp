@@ -13,4 +13,4 @@ config :phoenix_api, PhoenixApiWeb.Endpoint,
   secret_key_base: String.duplicate("a", 64),
   server: false
 
-config :logger, level: :warn
+config :logger, level: :warning

@@ -69,12 +69,17 @@ Moje commity zwiazane z zad 1:
 [`73fa5690`](https://github.com/tehcarlos777/SymfonyApp/commit/73fa5690) Phoenix-api: limit and order photo index
 - `phoenix-api/lib/phoenix_api_web/controllers/photo_controller.ex`: `GET /api/photos` — zmiana w zapytaniu: `order_by` rosnąco po `id`, `limit(500)` (`@photos_index_limit`).
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Fix test env config for Symfony and Phoenix
+[`a464e6b8`](https://github.com/tehcarlos777/SymfonyApp/commit/a464e6b8) Fix test env config for Symfony and Phoenix
 - Ujednolicono uruchamianie testów w `README.md`:
   - Symfony: `APP_ENV=test` + `phpunit.xml.dist`.
   - Phoenix: `docker-compose run --rm` z `MIX_ENV=test`.
 - W `docker-compose.yml` dodano dla Phoenix: `DB_HOST`, `DB_USER`, `DB_PASSWORD`.
 - W `phoenix-api/config/test.exs` zastąpiono hardcoded dane DB konfiguracją z `System.get_env(...)`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Expand and stabilize Phoenix API photo controller tests
+- Rozszerzono testy `phoenix-api/test/phoenix_api_web/controllers/photo_controller_test.exs` dla `GET /api/photos` (autoryzacja, filtrowanie po użytkowniku, kolejność po `id`, limit 500, przypadek pustej listy).
+- Ujednolicono uruchamianie testów w Dockerze (Symfony i Phoenix) oraz konfigurację testowego DB Phoenix przez zmienne środowiskowe.
+- W testach Phoenix usunięto warningi: `:warn` -> `:warning`, `use Phoenix.ConnTest` -> `import Plug.Conn` + `import Phoenix.ConnTest`, `new_user` -> `_new_user`.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.

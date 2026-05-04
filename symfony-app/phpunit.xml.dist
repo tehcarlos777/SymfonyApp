@@ -10,6 +10,7 @@
         <env name="APP_DEBUG" value="1"/>
         <env name="APP_SECRET" value="test-app-secret"/>
         <env name="AUTH_TOKEN_HMAC_SECRET" value="test-token-hmac-secret"/>
+        <env name="PHOENIX_BASE_URL" value="http://localhost:4000"/>
         <env name="DATABASE_URL" value="postgres://test:test@localhost:5432/symfony_app_test"/>
     </php>
     <testsuites>
