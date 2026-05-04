@@ -70,7 +70,7 @@ docker-compose restart symfony
 
 ### Uruchamianie testów
 ```bash
-docker-compose exec symfony php bin/phpunit
+docker-compose exec -e APP_ENV=test symfony php bin/phpunit -c phpunit.xml.dist
 ```
 
 ## Komendy Phoenix
@@ -98,5 +98,5 @@ docker-compose restart phoenix
 
 ### Uruchamianie testów
 ```bash
-docker-compose exec phoenix mix test
+docker-compose run --rm --entrypoint sh phoenix -lc "MIX_ENV=test mix deps.get && MIX_ENV=test mix deps.compile && MIX_ENV=test mix test"
 ```

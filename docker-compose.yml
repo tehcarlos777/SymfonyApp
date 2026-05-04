@@ -32,6 +32,9 @@ services:
       - phoenix-db
     environment:
       DATABASE_URL: ${PHOENIX_DATABASE_URL:?Set PHOENIX_DATABASE_URL in .env (must match phoenix-db credentials)}
+      DB_HOST: phoenix-db
+      DB_USER: ${PHOENIX_POSTGRES_USER:?Set PHOENIX_POSTGRES_USER in .env (see .env.example)}
+      DB_PASSWORD: ${PHOENIX_POSTGRES_PASSWORD:?Set PHOENIX_POSTGRES_PASSWORD in .env}
       SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE:?Set PHOENIX_SECRET_KEY_BASE in .env}
       PHX_HOST: 0.0.0.0
       PORT: 4000

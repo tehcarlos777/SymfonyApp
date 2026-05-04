@@ -66,8 +66,15 @@ Moje commity zwiazane z zad 1:
 - `symfony-app/src/Controller/ProfileController.php`: `POST /profile/phoenix-token` (zapis tokenu z CSRF `save_phoenix_token`) oraz `POST /profile/import-photos` (import z CSRF `import_photos`), flash z podsumowaniem `dodano / pominięto / łącznie z API`.
 - `symfony-app/templates/profile/index.html.twig`: pole na token, przyciski „Zapisz token” i „Importuj zdjęcia z Phoenix” z tokenami CSRF.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Phoenix-api: limit and order photo index
+[`73fa5690`](https://github.com/tehcarlos777/SymfonyApp/commit/73fa5690) Phoenix-api: limit and order photo index
 - `phoenix-api/lib/phoenix_api_web/controllers/photo_controller.ex`: `GET /api/photos` — zmiana w zapytaniu: `order_by` rosnąco po `id`, `limit(500)` (`@photos_index_limit`).
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Fix test env config for Symfony and Phoenix
+- Ujednolicono uruchamianie testów w `README.md`:
+  - Symfony: `APP_ENV=test` + `phpunit.xml.dist`.
+  - Phoenix: `docker-compose run --rm` z `MIX_ENV=test`.
+- W `docker-compose.yml` dodano dla Phoenix: `DB_HOST`, `DB_USER`, `DB_PASSWORD`.
+- W `phoenix-api/config/test.exs` zastąpiono hardcoded dane DB konfiguracją z `System.get_env(...)`.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
