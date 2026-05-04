@@ -98,5 +98,6 @@ docker-compose restart phoenix
 
 ### Uruchamianie testów
 ```bash
-docker-compose run --rm --entrypoint sh phoenix -lc "MIX_ENV=test mix deps.get && MIX_ENV=test mix deps.compile && MIX_ENV=test mix test"
+docker-compose exec phoenix mix deps.get
+docker-compose exec phoenix mix test
 ```

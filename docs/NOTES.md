@@ -110,8 +110,13 @@ Moje commity zwiazane z zad 1:
 - Test per-user: pięć żądań z nagłówkiem `access-token` użytkownika `rate_limit_user_token` zwraca `200`; szóste — `429`, JSON `errors.detail` == „Per-user import rate limit exceeded”, obecny nagłówek `retry-after`. Po każdym `recycle(conn)` ponownie ustawiany jest `access-token` (inaczej `ConnTest` gubi nagłówki i dostajemy `401`).
 - Test globalny: trzech użytkowników z tokenami `global_rate_user_{1,2,3}` — sekwencja **2+2+2** żądań (`List.duplicate`) plus **jedno dodatkowe** żądanie jako `global_rate_user_1` (`Kernel.++/1`), razem **7** udanych wywołań przy limicie globalnym 7; ósme żądanie jako `global_rate_user_1` oczekuje `429` z komunikatem „Global import rate limit exceeded” i nagłówkiem `retry-after`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Use POST and CSRF for photo like endpoint
-  - `photo_like` endpoint : zmiana na `POST`; Dodanie CSRF
+[`339f1802`](https://github.com/tehcarlos777/SymfonyApp/commit/339f1802) Use POST and CSRF for photo like endpoint
+- `photo_like` endpoint : zmiana na `POST`; Dodanie CSRF
+
+[`BASH`](https://github.com/tehcarlos777/SymfonyApp/commit/BASH) Phoenix Docker: scope MIX_ENV=dev to entrypoint; simplify README test commands
+- MIX_ENV=dev przeniesiono z phoenix-api/Dockerfile do phoenix-api/entrypoint.sh, żeby mix test uruchamiane przez exec nie dziedziczyło dev z obrazu.
+- Testy Phoenix/Ecto zakładają środowisko test (osobna baza). Gdy mix test odpala się z MIX_ENV=dev, ładuje się konfiguracja developerska — Sandbox i transakcje testowe często nie działają tak jak trzeba
+- README: zamiast długiego docker-compose run … — exec phoenix mix deps.get i exec phoenix mix test.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
