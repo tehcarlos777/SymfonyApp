@@ -81,8 +81,14 @@ Moje commity zwiazane z zad 1:
 - Ujednolicono uruchamianie testów w Dockerze (Symfony i Phoenix) oraz konfigurację testowego DB Phoenix przez zmienne środowiskowe.
 - W testach Phoenix usunięto warningi: `:warn` -> `:warning`, `use Phoenix.ConnTest` -> `import Plug.Conn` + `import Phoenix.ConnTest`, `new_user` -> `_new_user`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Fix Symfony container startup by making entrypoint executable
+[`9a703a76`](https://github.com/tehcarlos777/SymfonyApp/commit/9a703a76) Fix Symfony container startup by making entrypoint executable
 - Naprawiono start kontenera Symfony przez nadanie uprawnień wykonania plikowi `symfony-app/entrypoint.sh` na świeżym buildzie.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add Symfony tests for Phoenix import flow
+- Dodano testy encji pól importu Phoenix: `symfony-app/tests/Entity/PhoenixImportFieldsTest.php`.
+- Dodano testy importera: `symfony-app/tests/Import/PhoenixPhotoImporterTest.php` (błędy API/transportu, pomijanie duplikatów po parze `(user, phoenix_photo_id)`, nagłówek `access-token`).
+- Dodano testy kontrolera profilu: `symfony-app/tests/Controller/ProfileControllerPhoenixTest.php` (CSRF, flash błędu/sukcesu, zapis tokenu).
+- Dodano wrapper `symfony-app/bin/phpunit`, który uruchamia `vendor/bin/phpunit` (spójnie z komendą z `README.md`).
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
