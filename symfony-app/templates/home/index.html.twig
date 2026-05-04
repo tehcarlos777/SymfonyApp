@@ -29,6 +29,12 @@
             width: 100%;
             height: 400px;
         }
+
+        .like-form {
+            margin: 0;
+            padding: 0;
+            display: contents;
+        }
         
         .photo-card img {
             width: 100%;
@@ -45,6 +51,7 @@
             position: absolute;
             bottom: 15px;
             right: 15px;
+            font-family: inherit;
             background: white;
             border: 2px solid #667eea;
             border-radius: 25px;
@@ -287,10 +294,13 @@
                     <div class="photo-image-container">
                         <img src="{{ photo.imageUrl }}" alt="{{ photo.description }}">
                         {% if currentUser %}
-                            <a href="{{ path('photo_like', {id: photo.id}) }}" class="like-button {{ userLikes[photo.id] ? 'liked' : '' }}">
-                                {{ userLikes[photo.id] ? '❤️' : '🤍' }}
-                                <span>{{ photo.likeCounter }}</span>
-                            </a>
+                            <form method="post" action="{{ path('photo_like', {id: photo.id}) }}" class="like-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('photo_like') }}">
+                                <button type="submit" class="like-button {{ userLikes[photo.id] ? 'liked' : '' }}">
+                                    {{ userLikes[photo.id] ? '❤️' : '🤍' }}
+                                    <span>{{ photo.likeCounter }}</span>
+                                </button>
+                            </form>
                         {% else %}
                             <span class="like-button disabled" title="Login to like">
                                 🤍
