@@ -84,11 +84,19 @@ Moje commity zwiazane z zad 1:
 [`9a703a76`](https://github.com/tehcarlos777/SymfonyApp/commit/9a703a76) Fix Symfony container startup by making entrypoint executable
 - Naprawiono start kontenera Symfony przez nadanie uprawnień wykonania plikowi `symfony-app/entrypoint.sh` na świeżym buildzie.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add Symfony tests for Phoenix import flow
+[`b29796e4`](https://github.com/tehcarlos777/SymfonyApp/commit/b29796e4) Add Symfony tests for Phoenix import flow
 - Dodano testy encji pól importu Phoenix: `symfony-app/tests/Entity/PhoenixImportFieldsTest.php`.
 - Dodano testy importera: `symfony-app/tests/Import/PhoenixPhotoImporterTest.php` (błędy API/transportu, pomijanie duplikatów po parze `(user, phoenix_photo_id)`, nagłówek `access-token`).
 - Dodano testy kontrolera profilu: `symfony-app/tests/Controller/ProfileControllerPhoenixTest.php` (CSRF, flash błędu/sukcesu, zapis tokenu).
 - Dodano wrapper `symfony-app/bin/phpunit`, który uruchamia `vendor/bin/phpunit` (spójnie z komendą z `README.md`).
+
+  [`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add homepage photo filters and align taken_at date display/input
+- `PhotoRepository::findAllWithUsers()` zastąpiono metodą `PhotoRepository::findWithUsersAndFilters()`.
+- Dodano filtrowanie zdjęć po polach: `location`, `camera`, `description`, `taken_at`, `username` na stronie głównej (`HomeController` + `PhotoRepository::findWithUsersAndFilters()`).
+- W repozytorium zdjęć dodano warunki DQL dla filtrów tekstowych (`LIKE`, case-insensitive) oraz filtrowanie po dniu dla `taken_at` (zakres od początku do końca dnia).
+- Rozszerzono `templates/home/index.html.twig` o formularz filtrów (GET), przycisk czyszczenia filtrów i komunikat „No matching photos” przy pustym wyniku filtrowania.
+- Dodano szybkie filtrowanie po autorze z karty zdjęcia: kliknięcie w `@username` ustawia `?username=<login>`.
+- Ujednolicono prezentację daty zdjęcia w sekcji metadanych na format z ukośnikami: `d/m/Y`.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.

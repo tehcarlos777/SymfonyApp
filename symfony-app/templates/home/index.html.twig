@@ -133,6 +133,16 @@
             font-weight: 600;
             color: #333;
         }
+
+        .author-username-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .author-username-link:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
         
         .author-username {
             font-size: 0.85em;
@@ -149,10 +159,127 @@
             font-size: 2em;
             margin-bottom: 10px;
         }
+
+        .photo-filters {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 1180px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .photo-filters h2 {
+            font-size: 1.15rem;
+            color: #333;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        .photo-filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px 18px;
+            align-items: end;
+        }
+
+        .photo-filters label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .photo-filters input[type="text"],
+        .photo-filters input[type="date"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .photo-filters input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .photo-filters-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 18px;
+        }
+
+        .photo-filters button[type="submit"] {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .photo-filters button[type="submit"]:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .photo-filters-clear {
+            font-size: 0.9rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .photo-filters-clear:hover {
+            text-decoration: underline;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
+    <div class="photo-filters">
+        <h2>Filter photos</h2>
+        <form method="get" action="{{ path('home') }}">
+            <div class="photo-filters-grid">
+                <div>
+                    <label for="filter-location">Location</label>
+                    <input type="text" id="filter-location" name="location" value="{{ filters.location }}" placeholder="Contains…" autocomplete="off">
+                </div>
+                <div>
+                    <label for="filter-camera">Camera</label>
+                    <input type="text" id="filter-camera" name="camera" value="{{ filters.camera }}" placeholder="Contains…" autocomplete="off">
+                </div>
+                <div>
+                    <label for="filter-description">Description</label>
+                    <input type="text" id="filter-description" name="description" value="{{ filters.description }}" placeholder="Contains…" autocomplete="off">
+                </div>
+                <div>
+                    <label for="filter-username">Username</label>
+                    <input type="text" id="filter-username" name="username" value="{{ filters.username }}" placeholder="@handle" autocomplete="off">
+                </div>
+                <div>
+                    <label for="filter-taken-at">Taken at</label>
+                    <input type="date" id="filter-taken-at" name="taken_at" value="{{ filters.taken_at }}">
+                </div>
+            </div>
+            <div class="photo-filters-actions">
+                <button type="submit">Apply filters</button>
+                {% if hasActiveFilters %}
+                    <a href="{{ path('home') }}" class="photo-filters-clear">Clear all filters</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
     {% if photos|length > 0 %}
         <div class="photo-grid">
             {% for photo in photos %}
@@ -190,6 +317,13 @@
                                     <strong>Camera:</strong> {{ photo.camera }}
                                 </div>
                             {% endif %}
+
+                            {% if photo.takenAt %}
+                                <div class="photo-meta-item">
+                                    <span>📅</span>
+                                    <strong>Taken at:</strong> {{ photo.takenAt|date('d/m/Y') }}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="author">
@@ -204,7 +338,9 @@
                                         {{ photo.user.username }}
                                     {% endif %}
                                 </div>
-                                <div class="author-username">@{{ photo.user.username }}</div>
+                                <div class="author-username">
+                                    <a href="{{ path('home') }}?username={{ photo.user.username|url_encode }}" class="author-username-link">@{{ photo.user.username }}</a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -213,9 +349,15 @@
         </div>
     {% else %}
         <div class="empty-state">
-            <h2>📷 No photos yet</h2>
-            <p>Be the first to share your photography!</p>
+            {% if hasActiveFilters %}
+                <h2>🔍 No matching photos</h2>
+                <p>Try different filters or <a href="{{ path('home') }}" style="color: white; text-decoration: underline;">clear filters</a> to see everything.</p>
+            {% else %}
+                <h2>📷 No photos yet</h2>
+                <p>Be the first to share your photography!</p>
+            {% endif %}
         </div>
     {% endif %}
+
 {% endblock %}
 
