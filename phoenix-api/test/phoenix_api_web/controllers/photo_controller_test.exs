@@ -3,9 +3,12 @@ defmodule PhoenixApiWeb.PhotoControllerTest do
 
   alias PhoenixApi.Repo
   alias PhoenixApi.Accounts.User
+  alias PhoenixApi.ImportRateLimiter
   alias PhoenixApi.Media.Photo
 
   setup do
+    ImportRateLimiter.reset()
+
     user =
       %User{}
       |> User.changeset(%{api_token: "valid_test_token_123"})
@@ -188,6 +191,91 @@ defmodule PhoenixApiWeb.PhotoControllerTest do
 
       ids = Enum.map(response["photos"], & &1["id"])
       assert ids == Enum.sort(ids)
+    end
+  end
+
+  describe "GET /api/photos rate limiting" do
+    setup %{conn: conn} do
+      previous_config = Application.get_env(:phoenix_api, PhoenixApi.ImportRateLimiter)
+
+      Application.put_env(:phoenix_api, PhoenixApi.ImportRateLimiter,
+        user_limit: 5,
+        user_window_seconds: 600,
+        global_limit: 7,
+        global_window_seconds: 3600
+      )
+
+      ImportRateLimiter.reset()
+
+      on_exit(fn ->
+        Application.put_env(:phoenix_api, PhoenixApi.ImportRateLimiter, previous_config)
+        ImportRateLimiter.reset()
+      end)
+
+      user =
+        %User{}
+        |> User.changeset(%{api_token: "rate_limit_user_token"})
+        |> Repo.insert!()
+
+      {:ok, conn: conn, user: user}
+    end
+
+    test "blocks after 5 imports for the same user", %{conn: conn} do
+      Enum.each(1..5, fn _ ->
+        request_conn =
+          conn
+          |> recycle()
+          |> put_req_header("access-token", "rate_limit_user_token")
+          |> get("/api/photos")
+
+        assert response(request_conn, 200)
+      end)
+
+      blocked_conn =
+        conn
+        |> recycle()
+        |> put_req_header("access-token", "rate_limit_user_token")
+        |> get("/api/photos")
+
+      assert json_response(blocked_conn, 429) == %{
+               "errors" => %{"detail" => "Per-user import rate limit exceeded"}
+             }
+
+      assert get_resp_header(blocked_conn, "retry-after") != []
+    end
+
+    test "blocks when global import rate limit is reached", %{conn: conn} do
+      users =
+        for i <- 1..3 do
+          %User{}
+          |> User.changeset(%{api_token: "global_rate_user_#{i}"})
+          |> Repo.insert!()
+        end
+
+      users
+      |> Enum.flat_map(fn user -> List.duplicate(user.api_token, 2) end)
+      |> Kernel.++(["global_rate_user_1"])
+      |> Enum.each(fn token ->
+        request_conn =
+          conn
+          |> recycle()
+          |> put_req_header("access-token", token)
+          |> get("/api/photos")
+
+        assert response(request_conn, 200)
+      end)
+
+      blocked_conn =
+        conn
+        |> recycle()
+        |> put_req_header("access-token", "global_rate_user_1")
+        |> get("/api/photos")
+
+      assert json_response(blocked_conn, 429) == %{
+               "errors" => %{"detail" => "Global import rate limit exceeded"}
+             }
+
+      assert get_resp_header(blocked_conn, "retry-after") != []
     end
   end
 end

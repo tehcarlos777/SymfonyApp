@@ -98,11 +98,17 @@ Moje commity zwiazane z zad 1:
 - Dodano szybkie filtrowanie po autorze z karty zdjęcia: kliknięcie w `@username` ustawia `?username=<login>`.
 - Ujednolicono prezentację daty zdjęcia w sekcji metadanych na format z ukośnikami: `d/m/Y`.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Phoenix-api: rate-limit photo listing for Symfony imports
+[`04393d41`](https://github.com/tehcarlos777/SymfonyApp/commit/04393d41) Phoenix-api: rate-limit photo listing for Symfony imports
 - Dodano `PhoenixApi.ImportRateLimiter` (`GenServer`, OTP): przed zwróceniem listy zdjęć liczone są żądania w oknach czasowych; stan trzymany jest w pamięci procesu (kolejki znaczników czasu per użytkownik + globalna kolejka), wygasanie wpisów przez „pruning” najstarszych timestampów względem okna.
 - Limity domyślne (konfigurowalne w `phoenix-api/config/config.exs` pod kluczem `PhoenixApi.ImportRateLimiter`): **5 żądań na 10 minut** na `user_id` oraz **1000 żądań na godzinę** globalnie dla całej instancji API.
 - `PhoenixApi.Application` uruchamia limiter jako dziecko supervisora (`PhoenixApi.ImportRateLimiter`).
 - `PhoenixApiWeb.PhotoController.index/2`: najpierw `ImportRateLimiter.check_and_track/1`, dopiero potem zapytanie Ecto; przy przekroczeniu limitu odpowiedź **HTTP 429** z JSON-em `errors.detail` (osobny komunikat dla limitu użytkownika i globalnego) oraz nagłówkiem **`Retry-After`** (sekundy do najbliższego zwolnienia miejsca w oknie).
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Phoenix-api: PhotoController rate limit tests
+- Globalny `setup`: `alias PhoenixApi.ImportRateLimiter` oraz `ImportRateLimiter.reset()` przed seedem użytkowników/zdjęć — każdy test zaczyna z czystym stanem limitera, żeby wcześniejsze `GET /api/photos` nie wpływały na asercje.
+- Nowy blok `describe "GET /api/photos rate limiting"`: w `setup` zapis poprzedniej wartości `Application.get_env(:phoenix_api, PhoenixApi.ImportRateLimiter)`, tymczasowe `put_env` z **niższym** `global_limit: 7` (oraz `user_limit: 5`, okna jak w produkcji w minutach/godzinach), `ImportRateLimiter.reset()`, `on_exit` przywraca env i znów czyści limiter.
+- Test per-user: pięć żądań z nagłówkiem `access-token` użytkownika `rate_limit_user_token` zwraca `200`; szóste — `429`, JSON `errors.detail` == „Per-user import rate limit exceeded”, obecny nagłówek `retry-after`. Po każdym `recycle(conn)` ponownie ustawiany jest `access-token` (inaczej `ConnTest` gubi nagłówki i dostajemy `401`).
+- Test globalny: trzech użytkowników z tokenami `global_rate_user_{1,2,3}` — sekwencja **2+2+2** żądań (`List.duplicate`) plus **jedno dodatkowe** żądanie jako `global_rate_user_1` (`Kernel.++/1`), razem **7** udanych wywołań przy limicie globalnym 7; ósme żądanie jako `global_rate_user_1` oczekuje `429` z komunikatem „Global import rate limit exceeded” i nagłówkiem `retry-after`.
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
