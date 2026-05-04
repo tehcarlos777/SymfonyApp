@@ -3,6 +3,12 @@ import Config
 config :phoenix_api,
   ecto_repos: [PhoenixApi.Repo]
 
+config :phoenix_api, PhoenixApi.ImportRateLimiter,
+  user_limit: 5,
+  user_window_seconds: 10 * 60,
+  global_limit: 1000,
+  global_window_seconds: 60 * 60
+
 config :phoenix_api, PhoenixApiWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [

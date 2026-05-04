@@ -90,13 +90,19 @@ Moje commity zwiazane z zad 1:
 - Dodano testy kontrolera profilu: `symfony-app/tests/Controller/ProfileControllerPhoenixTest.php` (CSRF, flash błędu/sukcesu, zapis tokenu).
 - Dodano wrapper `symfony-app/bin/phpunit`, który uruchamia `vendor/bin/phpunit` (spójnie z komendą z `README.md`).
 
-  [`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Add homepage photo filters and align taken_at date display/input
+[`bd59fb8e`](https://github.com/tehcarlos777/SymfonyApp/commit/bd59fb8e) Add homepage photo filters and align taken_at date display/input
 - `PhotoRepository::findAllWithUsers()` zastąpiono metodą `PhotoRepository::findWithUsersAndFilters()`.
 - Dodano filtrowanie zdjęć po polach: `location`, `camera`, `description`, `taken_at`, `username` na stronie głównej (`HomeController` + `PhotoRepository::findWithUsersAndFilters()`).
 - W repozytorium zdjęć dodano warunki DQL dla filtrów tekstowych (`LIKE`, case-insensitive) oraz filtrowanie po dniu dla `taken_at` (zakres od początku do końca dnia).
 - Rozszerzono `templates/home/index.html.twig` o formularz filtrów (GET), przycisk czyszczenia filtrów i komunikat „No matching photos” przy pustym wyniku filtrowania.
 - Dodano szybkie filtrowanie po autorze z karty zdjęcia: kliknięcie w `@username` ustawia `?username=<login>`.
 - Ujednolicono prezentację daty zdjęcia w sekcji metadanych na format z ukośnikami: `d/m/Y`.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Phoenix-api: rate-limit photo listing for Symfony imports
+- Dodano `PhoenixApi.ImportRateLimiter` (`GenServer`, OTP): przed zwróceniem listy zdjęć liczone są żądania w oknach czasowych; stan trzymany jest w pamięci procesu (kolejki znaczników czasu per użytkownik + globalna kolejka), wygasanie wpisów przez „pruning” najstarszych timestampów względem okna.
+- Limity domyślne (konfigurowalne w `phoenix-api/config/config.exs` pod kluczem `PhoenixApi.ImportRateLimiter`): **5 żądań na 10 minut** na `user_id` oraz **1000 żądań na godzinę** globalnie dla całej instancji API.
+- `PhoenixApi.Application` uruchamia limiter jako dziecko supervisora (`PhoenixApi.ImportRateLimiter`).
+- `PhoenixApiWeb.PhotoController.index/2`: najpierw `ImportRateLimiter.check_and_track/1`, dopiero potem zapytanie Ecto; przy przekroczeniu limitu odpowiedź **HTTP 429** z JSON-em `errors.detail` (osobny komunikat dla limitu użytkownika i globalnego) oraz nagłówkiem **`Retry-After`** (sekundy do najbliższego zwolnienia miejsca w oknie).
 
 Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
