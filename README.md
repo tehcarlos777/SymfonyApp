@@ -30,6 +30,7 @@ docker-compose exec symfony php bin/console app:seed
 # Konfiguracja bazy danych Phoenix
 docker-compose exec phoenix mix ecto.migrate
 docker-compose exec phoenix mix run priv/repo/seeds.exs
+# seed Phoenix wypisuje w terminalu plaintext token dla phoenix_api.
 ```
 
 ### Rozwiązywanie problemów (opcjonalnie)
@@ -85,12 +86,14 @@ docker-compose exec phoenix mix ecto.migrate
 ### Seedowanie bazy danych
 ```bash
 docker-compose exec phoenix mix run priv/repo/seeds.exs
+# seed Phoenix wypisuje w terminalu plaintext token dla phoenix_api.
 ```
 
 ### Ponowne tworzenie bazy danych
 ```bash
 docker-compose exec phoenix mix ecto.reset
 docker-compose exec phoenix mix run priv/repo/seeds.exs
+# seed Phoenix wypisuje w terminalu plaintext token dla phoenix_api.
 ```
 
 ### Restart
