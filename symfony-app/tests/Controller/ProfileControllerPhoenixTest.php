@@ -8,7 +8,7 @@ use App\Controller\ProfileController;
 use App\Entity\User;
 use App\Import\PhoenixPhotoImporter;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ObjectRepository;
+use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -79,7 +79,7 @@ class ProfileControllerPhoenixTest extends TestCase
 
         $user = (new User())->setUsername('u')->setEmail('u@example.com');
 
-        $repository = $this->createMock(ObjectRepository::class);
+        $repository = $this->createMock(EntityRepository::class);
         $repository->method('find')->with(99)->willReturn($user);
 
         $em = $this->createMock(EntityManagerInterface::class);
@@ -101,7 +101,7 @@ class ProfileControllerPhoenixTest extends TestCase
 
         $user = (new User())->setUsername('u')->setEmail('u@example.com');
 
-        $repository = $this->createMock(ObjectRepository::class);
+        $repository = $this->createMock(EntityRepository::class);
         $repository->method('find')->with(7)->willReturn($user);
 
         $em = $this->createMock(EntityManagerInterface::class);
@@ -129,7 +129,7 @@ class ProfileControllerPhoenixTest extends TestCase
 
         $user = (new User())->setUsername('u')->setEmail('u@example.com')->setPhoenixApiToken('keep-me');
 
-        $repository = $this->createMock(ObjectRepository::class);
+        $repository = $this->createMock(EntityRepository::class);
         $repository->method('find')->with(3)->willReturn($user);
 
         $em = $this->createMock(EntityManagerInterface::class);
@@ -152,7 +152,7 @@ class ProfileControllerPhoenixTest extends TestCase
 
         $user = (new User())->setUsername('u')->setEmail('u@example.com');
 
-        $repository = $this->createMock(ObjectRepository::class);
+        $repository = $this->createMock(EntityRepository::class);
         $repository->method('find')->with(3)->willReturn($user);
 
         $em = $this->createMock(EntityManagerInterface::class);

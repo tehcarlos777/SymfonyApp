@@ -55,6 +55,26 @@ Moje commity zwiazane z zad 1:
   - Przycisk renderuje się tylko gdy brak `user_id` w sesji; po zalogowaniu nadal pokazuje się wyłącznie menu profilu (`My Profile` + `Logout`).
   - Dla trasy `auth_login` przycisk jest ukryty
 
+[`9a703a76`](https://github.com/tehcarlos777/SymfonyApp/commit/9a703a76) Fix Symfony container startup by making entrypoint executable
+- Naprawiono start kontenera Symfony przez nadanie uprawnień wykonania plikowi `symfony-app/entrypoint.sh` na świeżym buildzie.
+
+[`339f1802`](https://github.com/tehcarlos777/SymfonyApp/commit/339f1802) Use POST and CSRF for photo like endpoint
+- `photo_like` endpoint : zmiana na `POST`; Dodanie CSRF
+
+[`b8c79976`](https://github.com/tehcarlos777/SymfonyApp/commit/b8c79976) Phoenix Docker: scope MIX_ENV=dev to entrypoint; simplify README test commands
+- MIX_ENV=dev przeniesiono z phoenix-api/Dockerfile do phoenix-api/entrypoint.sh, żeby mix test uruchamiane przez exec nie dziedziczyło dev z obrazu.
+- Testy Phoenix/Ecto zakładają środowisko test (osobna baza). Gdy mix test odpala się z MIX_ENV=dev, ładuje się konfiguracja developerska — Sandbox i transakcje testowe często nie działają tak jak trzeba
+- README: zamiast długiego docker-compose run … — exec phoenix mix deps.get i exec phoenix mix test.
+
+[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Upgrade Doctrine ORM to 3.x and remove abandoned Doctrine packages
+  - W `symfony-app/composer.json` podniesiono `doctrine/orm` do `^3.3`; aktualizacja locka usunęła `doctrine/annotations`, `doctrine/cache` i `doctrine/common`, więc zniknęły ostrzeżenia Composer o abandoned packages.
+  - Dostosowano testy kontrolerów do kontraktów ORM 3 (`EntityRepository` w mockach `EntityManagerInterface::getRepository()`), żeby zachować zgodność typów.
+  - Weryfikacja: `docker-compose exec symfony composer install --no-interaction --no-scripts` oraz `docker-compose exec -e APP_ENV=test symfony php bin/phpunit -c phpunit.xml.dist` przechodzą poprawnie.
+
+### Zadanie 2 - Dodaj funkcjonalność importu zdjęć do SymfonyApp z PhoenixApi.
+
+Moje commity zwiazane z zad 2:
+
 [`ac057e13`](https://github.com/tehcarlos777/SymfonyApp/commit/ac057e13) Symfony-app: Add Phoenix import columns and DB migration
 - Migracja `symfony-app/migrations/Version20260503181000.php`: kolumna `users.phoenix_api_token` (wartość nagłówka `access-token` używana do wywołań Phoenix), kolumna `photos.phoenix_photo_id` (identyfikator zdjęcia z Phoenix — pole `id` z JSON-a odpowiedzi), indeks `idx_photos_phoenix_photo_id` oraz **częściowy** unikalny indeks `(user_id, phoenix_photo_id) WHERE phoenix_photo_id IS NOT NULL` w PostgreSQL — zapobiega duplikatom importu dla jednego użytkownika Symfony.
 - Encje: `User::$phoenixApiToken`, `Photo::$phoenixPhotoId` + gettery/settery zgodne z mapowaniem Doctrine.
@@ -81,14 +101,15 @@ Moje commity zwiazane z zad 1:
 - Ujednolicono uruchamianie testów w Dockerze (Symfony i Phoenix) oraz konfigurację testowego DB Phoenix przez zmienne środowiskowe.
 - W testach Phoenix usunięto warningi: `:warn` -> `:warning`, `use Phoenix.ConnTest` -> `import Plug.Conn` + `import Phoenix.ConnTest`, `new_user` -> `_new_user`.
 
-[`9a703a76`](https://github.com/tehcarlos777/SymfonyApp/commit/9a703a76) Fix Symfony container startup by making entrypoint executable
-- Naprawiono start kontenera Symfony przez nadanie uprawnień wykonania plikowi `symfony-app/entrypoint.sh` na świeżym buildzie.
-
 [`b29796e4`](https://github.com/tehcarlos777/SymfonyApp/commit/b29796e4) Add Symfony tests for Phoenix import flow
 - Dodano testy encji pól importu Phoenix: `symfony-app/tests/Entity/PhoenixImportFieldsTest.php`.
 - Dodano testy importera: `symfony-app/tests/Import/PhoenixPhotoImporterTest.php` (błędy API/transportu, pomijanie duplikatów po parze `(user, phoenix_photo_id)`, nagłówek `access-token`).
 - Dodano testy kontrolera profilu: `symfony-app/tests/Controller/ProfileControllerPhoenixTest.php` (CSRF, flash błędu/sukcesu, zapis tokenu).
 - Dodano wrapper `symfony-app/bin/phpunit`, który uruchamia `vendor/bin/phpunit` (spójnie z komendą z `README.md`).
+
+### Zadanie 3 - Filtrowanie zdjęć na stronie głównej.
+
+Moje commity zwiazane z zad 3:
 
 [`bd59fb8e`](https://github.com/tehcarlos777/SymfonyApp/commit/bd59fb8e) Add homepage photo filters and align taken_at date display/input
 - `PhotoRepository::findAllWithUsers()` zastąpiono metodą `PhotoRepository::findWithUsersAndFilters()`.
@@ -97,6 +118,10 @@ Moje commity zwiazane z zad 1:
 - Rozszerzono `templates/home/index.html.twig` o formularz filtrów (GET), przycisk czyszczenia filtrów i komunikat „No matching photos” przy pustym wyniku filtrowania.
 - Dodano szybkie filtrowanie po autorze z karty zdjęcia: kliknięcie w `@username` ustawia `?username=<login>`.
 - Ujednolicono prezentację daty zdjęcia w sekcji metadanych na format z ukośnikami: `d/m/Y`.
+
+### Zadanie 4 - Zaimplementuj rate-limiting w aplikacji PhoenixApi.
+
+Moje commity zwiazane z zad 4:
 
 [`04393d41`](https://github.com/tehcarlos777/SymfonyApp/commit/04393d41) Phoenix-api: rate-limit photo listing for Symfony imports
 - Dodano `PhoenixApi.ImportRateLimiter` (`GenServer`, OTP): przed zwróceniem listy zdjęć liczone są żądania w oknach czasowych; stan trzymany jest w pamięci procesu (kolejki znaczników czasu per użytkownik + globalna kolejka), wygasanie wpisów przez „pruning” najstarszych timestampów względem okna.
@@ -110,15 +135,8 @@ Moje commity zwiazane z zad 1:
 - Test per-user: pięć żądań z nagłówkiem `access-token` użytkownika `rate_limit_user_token` zwraca `200`; szóste — `429`, JSON `errors.detail` == „Per-user import rate limit exceeded”, obecny nagłówek `retry-after`. Po każdym `recycle(conn)` ponownie ustawiany jest `access-token` (inaczej `ConnTest` gubi nagłówki i dostajemy `401`).
 - Test globalny: trzech użytkowników z tokenami `global_rate_user_{1,2,3}` — sekwencja **2+2+2** żądań (`List.duplicate`) plus **jedno dodatkowe** żądanie jako `global_rate_user_1` (`Kernel.++/1`), razem **7** udanych wywołań przy limicie globalnym 7; ósme żądanie jako `global_rate_user_1` oczekuje `429` z komunikatem „Global import rate limit exceeded” i nagłówkiem `retry-after`.
 
-[`339f1802`](https://github.com/tehcarlos777/SymfonyApp/commit/339f1802) Use POST and CSRF for photo like endpoint
-- `photo_like` endpoint : zmiana na `POST`; Dodanie CSRF
+### Propozycja do wdrożenia później:
 
-[`BASH`](https://github.com/tehcarlos777/SymfonyApp/commit/BASH) Phoenix Docker: scope MIX_ENV=dev to entrypoint; simplify README test commands
-- MIX_ENV=dev przeniesiono z phoenix-api/Dockerfile do phoenix-api/entrypoint.sh, żeby mix test uruchamiane przez exec nie dziedziczyło dev z obrazu.
-- Testy Phoenix/Ecto zakładają środowisko test (osobna baza). Gdy mix test odpala się z MIX_ENV=dev, ładuje się konfiguracja developerska — Sandbox i transakcje testowe często nie działają tak jak trzeba
-- README: zamiast długiego docker-compose run … — exec phoenix mix deps.get i exec phoenix mix test.
-
-Propozycja do wdrożenia później:
   - Przejść na schemat `selector + verifier` zamiast pojedynczego hasha HMAC. Token przekazywany użytkownikowi miałby postać `selector.secret`.
   - W bazie trzymać tylko `selector` (indeksowany, jawny identyfikator) oraz `verifier_hash` liczony przez `password_hash(..., PASSWORD_ARGON2ID)`.
   - Przy logowaniu: wyszukiwać rekord po `selector`, a następnie robić `password_verify(secret, verifier_hash)`.

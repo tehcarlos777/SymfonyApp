@@ -7,7 +7,7 @@ namespace App\Tests\Controller;
 use App\Controller\AuthController;
 use App\Entity\AuthToken;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ObjectRepository;
+use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +21,7 @@ class AuthControllerLoginTest extends TestCase
 {
     public function testPostWithValidCsrfAndInvalidTokenRedirectsToLoginWithError(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
+        $repository = $this->createMock(EntityRepository::class);
         $repository
             ->method('findOneBy')
             ->with(['token' => hash_hmac('sha256', 'wrong-token', 'test-hmac-secret')])
