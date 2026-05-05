@@ -25,6 +25,7 @@ docker-compose exec phoenix mix deps.get
 # Konfiguracja bazy danych Symfony
 docker-compose exec symfony php bin/console doctrine:migrations:migrate --no-interaction
 docker-compose exec symfony php bin/console app:seed
+# app:seed wypisuje w terminalu plaintext auth token do logowania w Symfony (/login) i zapisuje w bazie tylko jego hash.
 
 # Konfiguracja bazy danych Phoenix
 docker-compose exec phoenix mix ecto.migrate
@@ -56,6 +57,7 @@ docker-compose exec symfony php bin/console doctrine:migrations:migrate --no-int
 docker-compose exec symfony php bin/console doctrine:schema:drop --force --full-database
 docker-compose exec symfony php bin/console doctrine:migrations:migrate --no-interaction
 docker-compose exec symfony php bin/console app:seed
+# app:seed wypisuje w terminalu plaintext auth token do logowania w Symfony (/login) i zapisuje w bazie tylko jego hash.
 ```
 
 ### Czyszczenie pamięci podręcznej (Cache)

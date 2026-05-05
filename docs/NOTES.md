@@ -66,7 +66,7 @@ Moje commity zwiazane z zad 1:
 - Testy Phoenix/Ecto zakładają środowisko test (osobna baza). Gdy mix test odpala się z MIX_ENV=dev, ładuje się konfiguracja developerska — Sandbox i transakcje testowe często nie działają tak jak trzeba
 - README: zamiast długiego docker-compose run … — exec phoenix mix deps.get i exec phoenix mix test.
 
-[`HASH`](https://github.com/tehcarlos777/SymfonyApp/commit/HASH) Upgrade Doctrine ORM to 3.x and remove abandoned Doctrine packages
+[`1e1ce449`](https://github.com/tehcarlos777/SymfonyApp/commit/1e1ce449) Upgrade Doctrine ORM to 3.x and remove abandoned Doctrine packages
   - W `symfony-app/composer.json` podniesiono `doctrine/orm` do `^3.3`; aktualizacja locka usunęła `doctrine/annotations`, `doctrine/cache` i `doctrine/common`, więc zniknęły ostrzeżenia Composer o abandoned packages.
   - Dostosowano testy kontrolerów do kontraktów ORM 3 (`EntityRepository` w mockach `EntityManagerInterface::getRepository()`), żeby zachować zgodność typów.
   - Weryfikacja: `docker-compose exec symfony composer install --no-interaction --no-scripts` oraz `docker-compose exec -e APP_ENV=test symfony php bin/phpunit -c phpunit.xml.dist` przechodzą poprawnie.
@@ -149,3 +149,11 @@ Moje commity zwiazane z zad 4:
   - Dodać pipeline CI (np. GitHub Actions), który przy każdym PR uruchamia `composer cs:check` i `composer test`. Narzędzia są już skonfigurowane — bez CI nikt ich nie uruchamia i standardy stopniowo się rozjeżdżają.
   - Internacjonalizacja (i18n): skonfigurować `translator` i locale (np. prefiks w URL lub wybór w sesji), zebrać stringi z Twig i kontrolerów do katalogów tłumaczeń (`messages.{locale}.yaml` / XLIFF) zamiast duplikować szablony na każdy język.
   - Dodać favicon do aplikacji
+
+## Wykorzystanie narzędzi AI
+
+  - W projekcie korzystano z asystenta AI w Cursor CLI do szkicowania/refaktoryzacji kodu, przygotowania testów i diagnozowania błędów.
+  - Wszystkie propozycje były ręcznie weryfikowane, testowane i zatwierdzane przed commitem.
+  - AI nie miało dostępu do sekretów ani danych produkcyjnych.
+
+---
